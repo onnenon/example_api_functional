@@ -1,4 +1,4 @@
 (executable
- (public_name example_api)
- (name main)
- (libraries example_api))
+   (public_name example_api_server)
+   (name main)
+   (libraries example_api dream))
