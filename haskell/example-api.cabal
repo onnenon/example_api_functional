@@ -12,9 +12,10 @@ common warnings
   ghc-options: -Wall
 
 common defaults
-  import:           warnings
-  build-depends:    base ^>=4.19.2.0
-  default-language: GHC2021
+  import:             warnings
+  build-depends:      base ^>=4.19.2.0
+  default-language:   GHC2021
+  default-extensions: OverloadedStrings
 
 library
   import:         defaults
