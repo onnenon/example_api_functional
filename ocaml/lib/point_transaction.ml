@@ -10,5 +10,5 @@ type t = {
   user_id : User.user_id;
   amount : int;
   raeson : transaction_reason;
-  created_at : float;
+  created_at : Ptime.t;
 }

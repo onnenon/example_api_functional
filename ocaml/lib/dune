@@ -1,2 +1,3 @@
 (library
- (name example_api))
+ (name example_api)
+ (libraries ptime))
