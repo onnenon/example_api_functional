@@ -1,5 +1,7 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
+let ( let* ) = Result.bind
+
 type user_id = UserId of int
 type family_id = FamilyId of int
 type role = Parent | Child
@@ -12,22 +14,6 @@ let user_id_of_yojson = function
         "expected integer for user_id" json
 
 let yojson_of_user_id (UserId n) = `Int n
-let ( let* ) = Result.bind
-
-let date_of_string s =
-  match String.split_on_char '-' s with
-  | [ y; m; d ] -> (
-      try
-        Ok
-          {
-            year = int_of_string y;
-            month = int_of_string m;
-            day = int_of_string d;
-          }
-      with Failure _ -> Error "invalid date components")
-  | _ -> Error "birthday must be YYYY-MM-DD"
-
-let date_to_string d = Printf.sprintf "%04d-%02d-%02d" d.year d.month d.day
 
 let family_id_of_yojson = function
   | `Int n -> FamilyId n
@@ -47,6 +33,21 @@ let role_of_yojson = function
 let yojson_of_role = function
   | Parent -> `String "parent"
   | Child -> `String "child"
+
+let date_of_string s =
+  match String.split_on_char '-' s with
+  | [ y; m; d ] -> (
+      try
+        Ok
+          {
+            year = int_of_string y;
+            month = int_of_string m;
+            day = int_of_string d;
+          }
+      with Failure _ -> Error "invalid date components")
+  | _ -> Error "birthday must be YYYY-MM-DD"
+
+let date_to_string d = Printf.sprintf "%04d-%02d-%02d" d.year d.month d.day
 
 let date_of_yojson = function
   | `String s -> (
