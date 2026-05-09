@@ -1,49 +1,48 @@
-cabal-version:      3.14
-name:               example-api
-
-version:            0.1.0.0
-
-license:            BSD-3-Clause
-license-file:       LICENSE
-
-author:             Stephen Onnen
-maintainer:         stephen.onnen@gmail.com
-
-build-type:         Simple
-extra-doc-files:    CHANGELOG.md
+cabal-version:   3.12
+name:            example-api
+version:         0.1.0.0
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Stephen Onnen
+maintainer:      stephen.onnen@gmail.com
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
 
 common warnings
-    ghc-options: -Wall
+  ghc-options: -Wall
 
 common defaults
-    import:           warnings
-    build-depends:    base ^>=4.19.2.0
-    default-language: GHC2021
+  import:           warnings
+  build-depends:    base ^>=4.19.2.0
+  default-language: GHC2021
 
 library
-    import: defaults
-    -- exposed-modules:  -- you'll fill these in as you create modules
-    hs-source-dirs:   src
+  import:         defaults
+
+  -- exposed-modules:  -- you'll fill these in as you create modules
+  hs-source-dirs: src
 
 executable example-api
-    import: defaults
-    main-is:          Main.hs
-    build-depends:
-        , example-api
-        , scotty
-        , sqlite-simple
-        , aeson
-        , text
-        , bytestring
-        , wai
-    hs-source-dirs:   app
+  import:         defaults
+  main-is:        Main.hs
+  build-depends:
+    , aeson
+    , bytestring
+    , example-api
+    , scotty
+    , sqlite-simple
+    , text
+    , wai
+
+  hs-source-dirs: app
 
 executable example-api-worker
-    import: defaults
-    main-is:          Main.hs
-    build-depends:
-        , example-api
-        , sqlite-simple
-        , async
-        , text
-    hs-source-dirs:   worker
+  import:         defaults
+  main-is:        Main.hs
+  build-depends:
+    , async
+    , example-api
+    , sqlite-simple
+    , text
+
+  hs-source-dirs: worker
