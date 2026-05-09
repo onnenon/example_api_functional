@@ -38,6 +38,12 @@ data NewUser = NewUser
   }
   deriving (Show, Eq)
 
+data UserError
+  = UniqueViolation Text
+  | ForeignKeyViolation
+  | NotNullViolation Text
+  deriving (Show, Eq)
+
 data PatchUser = PatchUser
   { familyId :: Maybe FamilyId,
     username :: Maybe Text,
