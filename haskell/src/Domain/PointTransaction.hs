@@ -10,14 +10,15 @@ newtype TransactionId = TransactionId Int deriving (Show, Eq)
 
 data TransactionReason
   = TaskCompletion TaskId
-  | RewardRedeption RewardId
+  | RewardRedemption RewardId
   | ManualAdjustment Text
   deriving (Show, Eq)
 
 data PointTransaction = PointTransaction
-  { trasactionId :: TransactionId,
+  { transactionId :: TransactionId,
     userId :: UserId,
     amount :: Int,
     reason :: TransactionReason,
     createdAt :: UTCTime
   }
+  deriving (Show, Eq)
