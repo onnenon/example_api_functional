@@ -61,19 +61,14 @@ runWithConstraints :: IO a -> IO (Either UserError a)
 runWithConstraints action = do
   result <- try @SQLError action
   case result of
-    Right a -> pure (Right a)
-    Left (SQLError ErrorConstraint details _) -> pure (Left (parseConstraint details))
-    Left e -> throwIO e
+    Right a                                       -> pure (Right a)
+    Left (SQLError ErrorConstraintUnique    d _)  -> pure (Left (UniqueViolation (afterDot d)))
+    Left (SQLError ErrorConstraintNotNull   d _)  -> pure (Left (NotNullViolation (afterDot d)))
+    Left (SQLError ErrorConstraintForeignKey _ _) -> pure (Left ForeignKeyViolation)
+    Left e                                        -> throwIO e
 
-parseConstraint :: Text -> UserError
-parseConstraint details
-  | "UNIQUE"      `T.isInfixOf` details = UniqueViolation (extractField details)
-  | "FOREIGN KEY" `T.isInfixOf` details = ForeignKeyViolation
-  | "NOT NULL"    `T.isInfixOf` details = NotNullViolation (extractField details)
-  | otherwise                            = UniqueViolation details
-
-extractField :: Text -> Text
-extractField = last . T.splitOn "."
+afterDot :: Text -> Text
+afterDot = snd . T.breakOnEnd "."
 
 applyPatch :: User -> PatchUser -> NewUser
 applyPatch u p =
