@@ -15,13 +15,20 @@ common defaults
   import:             warnings
   build-depends:      base ^>=4.19.2.0
   default-language:   GHC2021
-  default-extensions: OverloadedStrings
+  default-extensions:
+    DuplicateRecordFields
+    NoFieldSelectors
+    OverloadedRecordDot
+    OverloadedStrings
 
 library
-  import:         defaults
+  import:          defaults
+  exposed-modules: Domain.User
+  build-depends:
+    , text
+    , time
 
-  -- exposed-modules:  -- you'll fill these in as you create modules
-  hs-source-dirs: src
+  hs-source-dirs:  src
 
 executable example-api
   import:         defaults
