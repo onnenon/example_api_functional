@@ -24,12 +24,16 @@ common defaults
 library
   import:          defaults
   exposed-modules:
+    Db
     Domain.PointTransaction
     Domain.Reward
     Domain.Task
     Domain.User
+    Repo.User
 
   build-depends:
+    , aeson
+    , sqlite-simple
     , text
     , time
 

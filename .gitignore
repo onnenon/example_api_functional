@@ -1,3 +1,5 @@
 .vscode
 .claude
 .DS_Store
+db/*.db
+db/schema.sql
