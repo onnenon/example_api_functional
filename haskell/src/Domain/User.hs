@@ -1,15 +1,17 @@
 module Domain.User where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.:?), (.=))
+import Data.Aeson (FromJSON (..), Options, ToJSON (..), defaultOptions, fieldLabelModifier, genericParseJSON, object, withText, (.=))
+import Data.Aeson.Types (camelTo2)
 import Data.Text (Text)
 import Data.Time (Day)
 import Database.SQLite.Simple (FromRow (..), ToRow (..), field)
 import Database.SQLite.Simple.FromRow (RowParser)
 import Database.SQLite.Simple.ToField (toField)
+import GHC.Generics (Generic)
 
 newtype UserId = UserId Int deriving (Show, Eq)
 
-newtype FamilyId = FamilyId Int deriving (Show, Eq)
+newtype FamilyId = FamilyId Int deriving (Show, Eq, FromJSON)
 
 data Role
   = Parent
@@ -35,13 +37,7 @@ data NewUser = NewUser
     birthday :: Maybe Day,
     role :: Role
   }
-  deriving (Show, Eq)
-
-data UserError
-  = UniqueViolation Text
-  | ForeignKeyViolation
-  | NotNullViolation Text
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 data PatchUser = PatchUser
   { familyId :: Maybe FamilyId,
@@ -51,7 +47,23 @@ data PatchUser = PatchUser
     birthday :: Maybe (Maybe Day),
     role :: Maybe Role
   }
+  deriving (Show, Eq, Generic)
+
+data UserError
+  = UniqueViolation Text
+  | ForeignKeyViolation
+  | NotNullViolation Text
   deriving (Show, Eq)
+
+instance FromJSON Role where
+  parseJSON = withText "Role" parse
+    where
+      parse "parent" = pure Parent
+      parse "child" = pure Child
+      parse _ = fail "role must be 'parent' or 'child'"
+
+myOptions :: Options
+myOptions = defaultOptions {fieldLabelModifier = camelTo2 '_'}
 
 instance ToJSON User where
   toJSON u =
@@ -69,33 +81,10 @@ instance ToJSON User where
       roleText Child = "child"
 
 instance FromJSON NewUser where
-  parseJSON = withObject "NewUser" $ \o -> do
-    familyId <- FamilyId <$> o .: "family_id"
-    username <- o .: "username"
-    displayName <- o .: "display_name"
-    avatar <- o .:? "avatar"
-    birthday <- o .:? "birthday"
-    roleText <- o .: "role"
-    role <- case (roleText :: Text) of
-      "parent" -> pure Parent
-      "child" -> pure Child
-      _ -> fail "role must be 'parent' or 'child'"
-    pure NewUser {familyId, username, displayName, avatar, birthday, role}
+  parseJSON = genericParseJSON myOptions
 
 instance FromJSON PatchUser where
-  parseJSON = withObject "PatchUser" $ \o -> do
-    familyId <- fmap FamilyId <$> o .:? "family_id"
-    username <- o .:? "username"
-    displayName <- o .:? "display_name"
-    avatar <- o .:? "avatar"
-    birthday <- o .:? "birthday"
-    roleText <- o .:? "role"
-    role <- case (roleText :: Maybe Text) of
-      Nothing -> pure Nothing
-      Just "parent" -> pure $ Just Parent
-      Just "child" -> pure $ Just Child
-      Just _ -> fail "role must be 'parent' or 'child'"
-    pure PatchUser {familyId, username, displayName, avatar, birthday, role}
+  parseJSON = genericParseJSON myOptions
 
 instance FromRow User where
   fromRow = do
