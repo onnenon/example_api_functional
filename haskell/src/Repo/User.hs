@@ -61,11 +61,16 @@ runWithConstraints :: IO a -> IO (Either UserError a)
 runWithConstraints action = do
   result <- try @SQLError action
   case result of
-    Right a                                       -> pure (Right a)
-    Left (SQLError ErrorConstraintUnique    d _)  -> pure (Left (UniqueViolation (afterDot d)))
-    Left (SQLError ErrorConstraintNotNull   d _)  -> pure (Left (NotNullViolation (afterDot d)))
-    Left (SQLError ErrorConstraintForeignKey _ _) -> pure (Left ForeignKeyViolation)
-    Left e                                        -> throwIO e
+    Right a -> pure (Right a)
+    Left (SQLError ErrorConstraint details _) -> pure (Left (parseConstraint details))
+    Left e -> throwIO e
+
+parseConstraint :: Text -> UserError
+parseConstraint details
+  | Just rest <- T.stripPrefix "UNIQUE constraint failed: "    details = UniqueViolation (afterDot rest)
+  | Just rest <- T.stripPrefix "NOT NULL constraint failed: "  details = NotNullViolation (afterDot rest)
+  | "FOREIGN KEY constraint failed" `T.isPrefixOf` details              = ForeignKeyViolation
+  | otherwise                                                           = UniqueViolation details
 
 afterDot :: Text -> Text
 afterDot = snd . T.breakOnEnd "."
