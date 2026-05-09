@@ -23,7 +23,11 @@ common defaults
 
 library
   import:          defaults
-  exposed-modules: Domain.User
+  exposed-modules:
+    Domain.Reward
+    Domain.Task
+    Domain.User
+
   build-depends:
     , text
     , time
