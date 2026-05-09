@@ -1,11 +1,24 @@
 module Domain.User where
 
-import Data.Aeson (FromJSON (..), Options, ToJSON (..), defaultOptions, fieldLabelModifier, genericParseJSON, genericToJSON, withText)
+import Data.Aeson
+  ( FromJSON (..),
+    Options,
+    ToJSON (..),
+    defaultOptions,
+    fieldLabelModifier,
+    genericParseJSON,
+    genericToJSON,
+    withText,
+  )
 import Data.Aeson.Types (camelTo2)
 import Data.Text (Text)
 import Data.Time (Day)
 import Database.SQLite.Simple (FromRow (..), ToRow (..), field)
-import Database.SQLite.Simple.FromRow (RowParser)
+import Database.SQLite.Simple.FromField
+  ( FromField (..),
+    ResultError (..),
+    returnError,
+  )
 import Database.SQLite.Simple.ToField (toField)
 import GHC.Generics (Generic)
 
@@ -17,6 +30,15 @@ data Role
   = Parent
   | Child
   deriving (Show, Eq)
+
+roleToText :: Role -> Text
+roleToText Parent = "parent"
+roleToText Child = "child"
+
+roleFromText :: Text -> Maybe Role
+roleFromText "parent" = Just Parent
+roleFromText "child" = Just Child
+roleFromText _ = Nothing
 
 data User = User
   { id :: UserId,
@@ -58,16 +80,15 @@ data UserError
 instance FromJSON Role where
   parseJSON = withText "Role" parse
     where
-      parse "parent" = pure Parent
-      parse "child" = pure Child
-      parse _ = fail "role must be 'parent' or 'child'"
+      parse t = case roleFromText t of
+        Just r -> pure r
+        Nothing -> fail "role must be 'parent' or 'child'"
 
 myOptions :: Options
 myOptions = defaultOptions {fieldLabelModifier = camelTo2 '_'}
 
 instance ToJSON Role where
-  toJSON Parent = "parent"
-  toJSON Child  = "child"
+  toJSON = toJSON . roleToText
 
 instance ToJSON User where
   toJSON = genericToJSON myOptions
@@ -78,6 +99,13 @@ instance FromJSON NewUser where
 instance FromJSON PatchUser where
   parseJSON = genericParseJSON myOptions
 
+instance FromField Role where
+  fromField f = do
+    text <- fromField f
+    case roleFromText text of
+      Just r -> pure r
+      Nothing -> returnError ConversionFailed f "unknown role"
+
 instance FromRow User where
   fromRow = do
     uid <- UserId <$> field
@@ -86,8 +114,7 @@ instance FromRow User where
     displayName <- field
     avatar <- field
     birthday <- field
-    roleText <- field :: RowParser Text
-    let role = if roleText == "child" then Child else Parent
+    role <- field
     pure User {id = uid, familyId = fid, username, displayName, avatar, birthday, role}
 
 instance ToRow NewUser where
@@ -97,8 +124,5 @@ instance ToRow NewUser where
       toField u.displayName,
       toField u.avatar,
       toField u.birthday,
-      toField $ roleText u.role
+      toField $ roleToText u.role
     ]
-    where
-      roleText Parent = "parent" :: Text
-      roleText Child = "child"
