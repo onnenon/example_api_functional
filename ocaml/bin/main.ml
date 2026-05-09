@@ -1,1 +1,3 @@
-let () = print_endline ("Hello, World!")
+let () =
+  Dream.run
+  @@ Dream.router [ Dream.get "/health" (fun _req -> Dream.respond "ok") ]
