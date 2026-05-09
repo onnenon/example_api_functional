@@ -1,8 +1,5 @@
-import Control.Exception (SomeException)
-import Data.Aeson (object, (.=))
-import Data.Text (Text)
 import Db (openDb)
-import Network.HTTP.Types (status500)
+import Helpers (handleException)
 import Routes.User (userRoutes)
 import Web.Scotty
 
@@ -14,7 +11,3 @@ main = do
     get "/health" $
       text "ok"
     userRoutes conn
-
-handleException :: SomeException -> ActionM ()
-handleException _ =
-  status status500 >> json (object ["error" .= ("internal server error" :: Text)])
