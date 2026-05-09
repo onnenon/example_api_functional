@@ -46,6 +46,7 @@ executable example-api
     , aeson
     , bytestring
     , example-api
+    , http-types
     , scotty
     , sqlite-simple
     , text

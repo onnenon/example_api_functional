@@ -1,5 +1,6 @@
 module Repo.User where
 
+import Data.Functor ((<&>))
 import Database.SQLite.Simple
 import Domain.User
 
@@ -34,3 +35,18 @@ createUser conn u = do
   where
     orFail (Just user) = pure user
     orFail Nothing = fail "createUser: inserted row not found"
+
+updateUser :: Connection -> UserId -> NewUser -> IO (Maybe User)
+updateUser conn uid@(UserId i) u = do
+  execute
+    conn
+    "UPDATE users \
+    \SET family_id=?, username=?, display_name=?, avatar=?, birthday=?, role=?, points=? \
+    \WHERE id=?"
+    (toRow u <> toRow (Only i))
+  getUser conn uid
+
+deleteUser :: Connection -> UserId -> IO Bool
+deleteUser conn (UserId uid) = do
+  execute conn "DELETE FROM users WHERE id=?" (Only uid)
+  changes conn <&> (> 0)
