@@ -15,19 +15,20 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
-library
+common defaults
     import:           warnings
+    build-depends:    base ^>=4.19.2.0
+    default-language: GHC2021
+
+library
+    import: defaults
     -- exposed-modules:  -- you'll fill these in as you create modules
-    build-depends:    base ^>=4.22.0.0
     hs-source-dirs:   src
-    default-language: GHC2024
 
 executable example-api
-    import:           warnings
+    import: defaults
     main-is:          Main.hs
-    -- other-modules:
     build-depends:
-        base ^>=4.22.0.0
         , example-api
         , scotty
         , sqlite-simple
@@ -36,16 +37,13 @@ executable example-api
         , bytestring
         , wai
     hs-source-dirs:   app
-    default-language: GHC2024
 
 executable example-api-worker
-    import:           warnings
+    import: defaults
     main-is:          Main.hs
     build-depends:
-        base ^>=4.22.0.0
         , example-api
         , sqlite-simple
         , async
         , text
     hs-source-dirs:   worker
-    default-language: GHC2024

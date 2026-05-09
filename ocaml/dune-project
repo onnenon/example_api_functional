@@ -19,7 +19,7 @@
  (name example_api)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dream sqlite3 lwt lwt_ppx eio eio_main yojson)
+ (depends ocaml dream sqlite3 lwt lwt_ppx eio yojson)
  (tags
   ("add topics" "to describe" your project)))
 
