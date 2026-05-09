@@ -24,6 +24,7 @@ common defaults
 library
   import:          defaults
   exposed-modules:
+    Domain.PointTransaction
     Domain.Reward
     Domain.Task
     Domain.User
