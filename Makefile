@@ -34,3 +34,6 @@ ml-server:
 
 ml-worker:
 	cd ocaml && dune exec bin/worker/main.exe
+
+cabal-clean:
+	cd haskell && gen-hie > hie.yaml && cabal-fmt example-api.cabal --inplace
