@@ -90,5 +90,5 @@ type patch_user = {
 
 type user_error =
   | UniqueViolation of string
-  | ForeignViolation
+  | ForeignKeyViolation
   | NotNullViolation of string

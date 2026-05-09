@@ -1,6 +1,6 @@
 module Domain.User where
 
-import Data.Aeson (FromJSON (..), Options, ToJSON (..), defaultOptions, fieldLabelModifier, genericParseJSON, object, withText, (.=))
+import Data.Aeson (FromJSON (..), Options, ToJSON (..), defaultOptions, fieldLabelModifier, genericParseJSON, genericToJSON, withText)
 import Data.Aeson.Types (camelTo2)
 import Data.Text (Text)
 import Data.Time (Day)
@@ -9,9 +9,9 @@ import Database.SQLite.Simple.FromRow (RowParser)
 import Database.SQLite.Simple.ToField (toField)
 import GHC.Generics (Generic)
 
-newtype UserId = UserId Int deriving (Show, Eq)
+newtype UserId = UserId Int deriving (Show, Eq, ToJSON)
 
-newtype FamilyId = FamilyId Int deriving (Show, Eq, FromJSON)
+newtype FamilyId = FamilyId Int deriving (Show, Eq, FromJSON, ToJSON)
 
 data Role
   = Parent
@@ -19,7 +19,7 @@ data Role
   deriving (Show, Eq)
 
 data User = User
-  { userId :: UserId,
+  { id :: UserId,
     familyId :: FamilyId,
     username :: Text,
     displayName :: Text,
@@ -27,7 +27,7 @@ data User = User
     birthday :: Maybe Day,
     role :: Role
   }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 data NewUser = NewUser
   { familyId :: FamilyId,
@@ -65,20 +65,12 @@ instance FromJSON Role where
 myOptions :: Options
 myOptions = defaultOptions {fieldLabelModifier = camelTo2 '_'}
 
+instance ToJSON Role where
+  toJSON Parent = "parent"
+  toJSON Child  = "child"
+
 instance ToJSON User where
-  toJSON u =
-    object
-      [ "id" .= let UserId i = u.userId in i,
-        "family_id" .= let FamilyId f = u.familyId in f,
-        "username" .= u.username,
-        "display_name" .= u.displayName,
-        "avatar" .= u.avatar,
-        "birthday" .= u.birthday,
-        "role" .= roleText u.role
-      ]
-    where
-      roleText Parent = "parent" :: Text
-      roleText Child = "child"
+  toJSON = genericToJSON myOptions
 
 instance FromJSON NewUser where
   parseJSON = genericParseJSON myOptions
@@ -96,7 +88,7 @@ instance FromRow User where
     birthday <- field
     roleText <- field :: RowParser Text
     let role = if roleText == "child" then Child else Parent
-    pure User {userId = uid, familyId = fid, username, displayName, avatar, birthday, role}
+    pure User {id = uid, familyId = fid, username, displayName, avatar, birthday, role}
 
 instance ToRow NewUser where
   toRow u =
