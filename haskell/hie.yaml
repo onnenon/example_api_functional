@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:example-api"
+
+    - path: "app/Main.hs"
+      component: "example-api:exe:example-api"
+
+    - path: "worker/Main.hs"
+      component: "example-api:exe:example-api-worker"
