@@ -1,3 +1,5 @@
+(include_subdirs qualified)
+
 (library
  (name example_api)
  (libraries ptime yojson sqlite3 ppx_yojson_conv)
