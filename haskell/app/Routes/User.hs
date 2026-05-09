@@ -26,6 +26,11 @@ userRoutes conn = do
     nu <- jsonData
     liftIO (UserRepo.updateUser conn uid nu) >>= respondMaybe
 
+  patch "/users/:id" $ do
+    uid <- UserId <$> captureParam "id"
+    p <- jsonData
+    liftIO (UserRepo.patchUser conn uid p) >>= respondMaybe
+
   delete "/users/:id" $ do
     uid <- UserId <$> captureParam "id"
     liftIO (UserRepo.deleteUser conn uid) >>= respondFound

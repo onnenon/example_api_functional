@@ -1,6 +1,7 @@
 module Repo.User where
 
 import Data.Functor ((<&>))
+import Data.Maybe (fromMaybe)
 import Database.SQLite.Simple
 import Domain.User
 
@@ -45,6 +46,24 @@ updateUser conn uid@(UserId i) u = do
     \WHERE id=?"
     (toRow u <> toRow (Only i))
   getUser conn uid
+
+patchUser :: Connection -> UserId -> PatchUser -> IO (Maybe User)
+patchUser conn uid p = do
+  current <- getUser conn uid
+  case current of
+    Nothing -> pure Nothing
+    Just u -> updateUser conn uid (applyPatch u p)
+
+applyPatch :: User -> PatchUser -> NewUser
+applyPatch u p =
+  NewUser
+    { familyId = fromMaybe u.familyId p.familyId,
+      username = fromMaybe u.username p.username,
+      displayName = fromMaybe u.displayName p.displayName,
+      avatar = fromMaybe u.avatar p.avatar,
+      birthday = fromMaybe u.birthday p.birthday,
+      role = fromMaybe u.role p.role
+    }
 
 deleteUser :: Connection -> UserId -> IO Bool
 deleteUser conn (UserId uid) = do

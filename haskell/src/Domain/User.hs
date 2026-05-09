@@ -38,6 +38,16 @@ data NewUser = NewUser
   }
   deriving (Show, Eq)
 
+data PatchUser = PatchUser
+  { familyId :: Maybe FamilyId,
+    username :: Maybe Text,
+    displayName :: Maybe Text,
+    avatar :: Maybe (Maybe Text),
+    birthday :: Maybe (Maybe Day),
+    role :: Maybe Role
+  }
+  deriving (Show, Eq)
+
 instance ToJSON User where
   toJSON u =
     object
@@ -73,6 +83,22 @@ instance FromJSON NewUser where
       "child" -> pure $ Child {points = fromMaybe 0 points}
       _ -> fail "role must be 'parent' or 'child'"
     pure NewUser {familyId, username, displayName, avatar, birthday, role}
+
+instance FromJSON PatchUser where
+  parseJSON = withObject "PatchUser" $ \o -> do
+    familyId <- fmap FamilyId <$> o .:? "family_id"
+    username <- o .:? "username"
+    displayName <- o .:? "display_name"
+    avatar <- o .:? "avatar"
+    birthday <- o .:? "birthday"
+    roleText <- o .:? "role"
+    points <- o .:? "points"
+    role <- case (roleText :: Maybe Text) of
+      Nothing -> pure Nothing
+      Just "parent" -> pure $ Just Parent
+      Just "child" -> pure $ Just (Child {points = fromMaybe 0 points})
+      Just _ -> fail "role must be 'parent' or 'child'"
+    pure PatchUser {familyId, username, displayName, avatar, birthday, role}
 
 instance FromRow User where
   fromRow = do
