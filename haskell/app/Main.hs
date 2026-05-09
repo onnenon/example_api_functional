@@ -1,8 +1,7 @@
-import Data.Aeson (ToJSON, object, (.=))
-import Data.Text (Text)
 import Db (openDb)
 import Domain.User
-import Network.HTTP.Types (status201, status204, status404)
+import Helpers
+import Network.HTTP.Types (status201)
 import Repo.User qualified as UserRepo
 import Web.Scotty
 
@@ -34,10 +33,3 @@ main = do
       uid <- UserId <$> captureParam "id"
       liftIO (UserRepo.deleteUser conn uid) >>= respondFound
 
-respondMaybe :: (ToJSON a) => Maybe a -> ActionM ()
-respondMaybe Nothing = status status404 >> json (object ["error" .= ("not found" :: Text)])
-respondMaybe (Just u) = json u
-
-respondFound :: Bool -> ActionM ()
-respondFound False = status status404
-respondFound True = status status204
