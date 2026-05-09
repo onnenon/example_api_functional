@@ -42,7 +42,9 @@ library
 executable example-api
   import:         defaults
   main-is:        Main.hs
-  other-modules:  Helpers
+  other-modules:
+    Helpers
+    Routes.User
   build-depends:
     , aeson
     , bytestring

@@ -9,5 +9,8 @@ cradle:
     - path: "app/Helpers.hs"
       component: "example-api:exe:example-api"
 
+    - path: "app/Routes/User.hs"
+      component: "example-api:exe:example-api"
+
     - path: "worker/Main.hs"
       component: "example-api:exe:example-api-worker"
