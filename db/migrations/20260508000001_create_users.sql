@@ -6,8 +6,7 @@ CREATE TABLE users (
   display_name TEXT    NOT NULL,
   avatar       TEXT,
   birthday     TEXT,
-  role         TEXT    NOT NULL CHECK (role IN ('parent', 'child')),
-  points       INTEGER
+  role         TEXT    NOT NULL CHECK (role IN ('parent', 'child'))
 );
 
 -- migrate:down

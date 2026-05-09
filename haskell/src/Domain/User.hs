@@ -1,7 +1,6 @@
 module Domain.User where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.:?), (.=))
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Time (Day)
 import Database.SQLite.Simple (FromRow (..), ToRow (..), field)
@@ -14,7 +13,7 @@ newtype FamilyId = FamilyId Int deriving (Show, Eq)
 
 data Role
   = Parent
-  | Child {points :: Int}
+  | Child
   deriving (Show, Eq)
 
 data User = User
@@ -63,14 +62,11 @@ instance ToJSON User where
         "display_name" .= u.displayName,
         "avatar" .= u.avatar,
         "birthday" .= u.birthday,
-        "role" .= roleText u.role,
-        "points" .= rolePoints u.role
+        "role" .= roleText u.role
       ]
     where
       roleText Parent = "parent" :: Text
-      roleText (Child _) = "child"
-      rolePoints Parent = Nothing :: Maybe Int
-      rolePoints (Child {points}) = Just points
+      roleText Child = "child"
 
 instance FromJSON NewUser where
   parseJSON = withObject "NewUser" $ \o -> do
@@ -80,13 +76,9 @@ instance FromJSON NewUser where
     avatar <- o .:? "avatar"
     birthday <- o .:? "birthday"
     roleText <- o .: "role"
-    points <- o .:? "points"
-    case points of
-      Just p | p < 0 -> fail "points must not be negative"
-      _ -> pure ()
     role <- case (roleText :: Text) of
       "parent" -> pure Parent
-      "child" -> pure $ Child {points = fromMaybe 0 points}
+      "child" -> pure Child
       _ -> fail "role must be 'parent' or 'child'"
     pure NewUser {familyId, username, displayName, avatar, birthday, role}
 
@@ -98,11 +90,10 @@ instance FromJSON PatchUser where
     avatar <- o .:? "avatar"
     birthday <- o .:? "birthday"
     roleText <- o .:? "role"
-    points <- o .:? "points"
     role <- case (roleText :: Maybe Text) of
       Nothing -> pure Nothing
       Just "parent" -> pure $ Just Parent
-      Just "child" -> pure $ Just (Child {points = fromMaybe 0 points})
+      Just "child" -> pure $ Just Child
       Just _ -> fail "role must be 'parent' or 'child'"
     pure PatchUser {familyId, username, displayName, avatar, birthday, role}
 
@@ -115,13 +106,8 @@ instance FromRow User where
     avatar <- field
     birthday <- field
     roleText <- field :: RowParser Text
-    points <- field :: RowParser (Maybe Int)
-    let role = toRole roleText points
+    let role = if roleText == "child" then Child else Parent
     pure User {userId = uid, familyId = fid, username, displayName, avatar, birthday, role}
-    where
-      toRole :: Text -> Maybe Int -> Role
-      toRole "child" pts = Child {points = fromMaybe 0 pts}
-      toRole _ _ = Parent
 
 instance ToRow NewUser where
   toRow u =
@@ -130,11 +116,8 @@ instance ToRow NewUser where
       toField u.displayName,
       toField u.avatar,
       toField u.birthday,
-      toField $ roleText u.role,
-      toField $ rolePoints u.role
+      toField $ roleText u.role
     ]
     where
       roleText Parent = "parent" :: Text
-      roleText (Child _) = "child"
-      rolePoints Parent = Nothing :: Maybe Int
-      rolePoints (Child {points}) = Just points
+      roleText Child = "child"

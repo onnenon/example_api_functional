@@ -12,7 +12,7 @@ listUsers :: Connection -> IO [User]
 listUsers conn =
   query_
     conn
-    "SELECT id, family_id, username, display_name, avatar, birthday, role, points \
+    "SELECT id, family_id, username, display_name, avatar, birthday, role \
     \FROM users"
 
 getUser :: Connection -> UserId -> IO (Maybe User)
@@ -20,7 +20,7 @@ getUser conn (UserId uid) = do
   rows <-
     query
       conn
-      "SELECT id, family_id, username, display_name, avatar, birthday, role, points \
+      "SELECT id, family_id, username, display_name, avatar, birthday, role \
       \FROM users WHERE id = ?"
       (Only uid)
   pure $ case rows of
@@ -31,8 +31,8 @@ createUser :: Connection -> NewUser -> IO (Either UserError User)
 createUser conn u = runWithConstraints $ do
   execute
     conn
-    "INSERT INTO users (family_id, username, display_name, avatar, birthday, role, points) \
-    \VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO users (family_id, username, display_name, avatar, birthday, role) \
+    \VALUES (?, ?, ?, ?, ?, ?)"
     u
   uid <- lastInsertRowId conn
   getUser conn (UserId (fromIntegral uid)) >>= orFail
@@ -45,7 +45,7 @@ updateUser conn uid@(UserId i) u = runWithConstraints $ do
   execute
     conn
     "UPDATE users \
-    \SET family_id=?, username=?, display_name=?, avatar=?, birthday=?, role=?, points=? \
+    \SET family_id=?, username=?, display_name=?, avatar=?, birthday=?, role=? \
     \WHERE id=?"
     (toRow u <> toRow (Only i))
   getUser conn uid

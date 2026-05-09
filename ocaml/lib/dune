@@ -1,3 +1,4 @@
 (library
  (name example_api)
- (libraries ptime))
+ (libraries ptime yojson sqlite3 ppx_yojson_conv)
+ (preprocess (pps ppx_yojson_conv)))
